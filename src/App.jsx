@@ -13,6 +13,7 @@ function App() {
   const [isEditing, setIsEditing] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalSong, setModalSong] = useState(null)
+  const [modalSongList, setModalSongList] = useState([]) // Track which songs to navigate through
   const [startInEditMode, setStartInEditMode] = useState(false)
   const [activeTab, setActiveTab] = useState('songs') // 'songs' or 'setlists'
   const [viewingSetlist, setViewingSetlist] = useState(null) // For viewing setlist songs
@@ -81,15 +82,17 @@ function App() {
     setIsEditing(true)
   }
 
-  const editSongInModal = (song) => {
+  const editSongInModal = (song, songList = songs) => {
     // Open modal in edit mode
     setModalSong(song)
+    setModalSongList(songList)
     setModalOpen(true)
-    setStartInEditMode(false) // Reset first
+    setStartInEditMode(true)
+
     // Use setTimeout to ensure the modal is open before setting edit mode
     setTimeout(() => {
       setStartInEditMode(true)
-    }, 0)
+    }, 10)
   }
 
   const deleteSong = (songId) => {
@@ -101,8 +104,9 @@ function App() {
     }
   }
 
-  const openModal = (song) => {
+  const openModal = (song, songList = songs) => {
     setModalSong(song)
+    setModalSongList(songList)
     setModalOpen(true)
     setStartInEditMode(false)
   }
@@ -110,12 +114,22 @@ function App() {
   const closeModal = () => {
     setModalOpen(false)
     setModalSong(null)
+    setModalSongList([])
     setStartInEditMode(false)
   }
 
   const navigateModal = (song) => {
     setModalSong(song)
     setStartInEditMode(false) // Reset edit mode when navigating
+  }
+
+  // Open modal from setlist viewer with setlist songs
+  const openModalFromSetlist = (song) => {
+    if (viewingSetlist) {
+      openModal(song, viewingSetlist.songs)
+    } else {
+      openModal(song)
+    }
   }
 
   const resetEditMode = () => {
@@ -206,7 +220,7 @@ function App() {
               <SetlistViewer
                 setlist={viewingSetlist}
                 onBack={backToSetlists}
-                onViewSong={openModal}
+                onViewSong={openModalFromSetlist}
                 onUpdateSetlist={updateSetlist}
               />
             ) : (
@@ -226,7 +240,7 @@ function App() {
       {/* Lyrics Modal */}
       <LyricsModal
         song={modalSong}
-        songs={songs}
+        songs={modalSongList}
         isOpen={modalOpen}
         onClose={closeModal}
         onEdit={editSong}
