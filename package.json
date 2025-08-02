@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:tunnel": "./start-with-ngrok.sh",
+    "tunnel": "ngrok http 5174",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

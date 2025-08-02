@@ -1,3 +1,3 @@
 git add .
-git commit -m "setlist manager"
+git commit -m "ngrok integration and setlist viewer improvements"
 git push origin main
