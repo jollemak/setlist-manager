@@ -131,6 +131,11 @@ function App() {
     setSetlists(setlists.map(setlist => 
       setlist.id === updatedSetlist.id ? updatedSetlist : setlist
     ))
+    
+    // Update viewingSetlist if it's the same setlist being updated
+    if (viewingSetlist && viewingSetlist.id === updatedSetlist.id) {
+      setViewingSetlist(updatedSetlist)
+    }
   }
 
   const deleteSetlist = (setlistId) => {
@@ -202,6 +207,7 @@ function App() {
                 setlist={viewingSetlist}
                 onBack={backToSetlists}
                 onViewSong={openModal}
+                onUpdateSetlist={updateSetlist}
               />
             ) : (
               <SetlistManager

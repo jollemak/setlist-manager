@@ -152,6 +152,8 @@ body {
   border-radius: 10px;
   font-size: 1rem;
   transition: border-color 0.3s;
+  background-color: #f8f9fa;
+  color: #333;
 }
 
 .input-field:focus {
@@ -169,6 +171,8 @@ body {
   resize: vertical;
   min-height: 100px;
   transition: border-color 0.3s;
+  background-color: #f8f9fa;
+  color: #333;
 }
 
 .lyrics-textarea:focus {
@@ -257,6 +261,8 @@ body {
   border: 2px solid #e1e8ed;
   border-radius: 8px;
   font-size: 1rem;
+  background-color: #f8f9fa;
+  color: #333;
 }
 
 .search-input:focus {
@@ -300,6 +306,7 @@ body {
   margin: 0;
   flex: 1;
   word-break: break-word;
+  
 }
 
 .song-actions {
@@ -922,10 +929,24 @@ body {
   border-radius: 6px;
   border: 1px solid #e1e8ed;
   transition: all 0.2s;
+  cursor: grab;
 }
 
 .setlist-song-item:hover {
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.setlist-song-item.dragging {
+  opacity: 0.5;
+  transform: rotate(3deg);
+  cursor: grabbing;
+  z-index: 10;
+}
+
+.setlist-song-item.drag-over {
+  border-color: #3498db;
+  background-color: #f0f8ff;
+  transform: scale(1.02);
 }
 
 .song-number {
@@ -1058,7 +1079,7 @@ body {
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  width: 100%;
+  width: 70%;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -1082,7 +1103,9 @@ body {
 }
 
 .setlist-songs-display {
-  width: 100%;
+  width: fit-content;
+  text-align: center;
+  
 }
 
 .setlist-song-card {
@@ -1090,6 +1113,23 @@ body {
   cursor: pointer;
   border: 2px solid #e1e8ed;
   transition: all 0.3s;
+}
+
+.setlist-song-card.draggable {
+  cursor: grab;
+}
+
+.setlist-song-card.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg);
+  cursor: grabbing;
+  z-index: 10;
+}
+
+.setlist-song-card.drag-over {
+  border-color: #3498db;
+  background-color: #f0f8ff;
+  transform: scale(1.02);
 }
 
 .setlist-song-card:hover {
@@ -1117,21 +1157,43 @@ body {
 }
 
 .setlist-songs-display .songs-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  
 }
 
 .setlist-songs-display .song-card {
-  padding: 1.5rem;
-  min-height: 120px;
+  padding: 1rem;
+  min-height: auto;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: #7f8c8d;
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.drag-handle:hover {
+  color: #3498db;
+  background-color: #f8f9fa;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .setlist-songs-display .song-header {
-  margin-bottom: 1rem;
+  margin-bottom: 0;
+  flex: 1;
 }
 
 .setlist-songs-display .song-title {
@@ -1156,12 +1218,20 @@ body {
   }
   
   .setlist-songs-display .songs-grid {
-    grid-template-columns: 1fr;
     gap: 1rem;
   }
   
   .setlist-songs-display .song-card {
     padding: 1rem;
     min-height: auto;
+  }
+  
+  .drag-handle {
+    font-size: 1.5rem;
+    padding: 0.5rem;
+  }
+  
+  .setlist-song-card.dragging {
+    transform: rotate(3deg);
   }
 }

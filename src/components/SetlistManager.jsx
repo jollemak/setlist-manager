@@ -5,6 +5,11 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
   const [newSetlistName, setNewSetlistName] = useState('')
   const [editingSetlist, setEditingSetlist] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  
+  // Drag and drop state
+  const [draggedIndex, setDraggedIndex] = useState(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
+  const [reorderedSongs, setReorderedSongs] = useState([])
 
   const handleCreateSetlist = () => {
     if (!newSetlistName.trim()) {
@@ -73,29 +78,82 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
     setEditingSetlist(updatedSetlist)
   }
 
-  const handleMoveSong = (fromIndex, toIndex) => {
-    if (!editingSetlist) return
-
-    const newSongs = [...editingSetlist.songs]
-    const [movedSong] = newSongs.splice(fromIndex, 1)
-    newSongs.splice(toIndex, 0, movedSong)
-
-    const updatedSetlist = {
-      ...editingSetlist,
-      songs: newSongs,
-      updatedAt: new Date().toISOString()
-    }
-
-    onUpdateSetlist(updatedSetlist)
-    setEditingSetlist(updatedSetlist)
-  }
-
   const handleEditSetlist = (setlist) => {
     setEditingSetlist(setlist)
   }
 
   const handleCancelEdit = () => {
     setEditingSetlist(null)
+    // Reset drag state when canceling edit
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+    setReorderedSongs([])
+  }
+
+  // Drag and drop handlers
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index)
+    setReorderedSongs([...editingSetlist.songs]) // Start with current order
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', e.target)
+  }
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    
+    if (draggedIndex === null || draggedIndex === index) {
+      return
+    }
+
+    setDragOverIndex(index)
+
+    // Create real-time preview by reordering the songs array
+    const newSongs = [...editingSetlist.songs]
+    const draggedSong = newSongs[draggedIndex]
+    
+    // Remove the dragged song from its original position
+    newSongs.splice(draggedIndex, 1)
+    
+    // Insert the dragged song at the hover position
+    newSongs.splice(index, 0, draggedSong)
+
+    setReorderedSongs(newSongs)
+  }
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null)
+  }
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault()
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null)
+      setDragOverIndex(null)
+      setReorderedSongs([])
+      return
+    }
+
+    // Use the reordered songs from the preview as the final result
+    const updatedSetlist = {
+      ...editingSetlist,
+      songs: reorderedSongs,
+      updatedAt: new Date().toISOString()
+    }
+
+    onUpdateSetlist(updatedSetlist)
+    setEditingSetlist(updatedSetlist)
+
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+    setReorderedSongs([])
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+    setReorderedSongs([])
   }
 
   const filteredSongs = songs.filter(song =>
@@ -225,39 +283,41 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
                 </div>
               ) : (
                 <div className="setlist-songs-list">
-                  {editingSetlist.songs.map((song, index) => (
-                    <div key={song.id} className="setlist-song-item">
-                      <div className="song-number">{index + 1}</div>
-                      <div className="song-info">
-                        <div className="song-title">{song.title}</div>
+                  {(reorderedSongs.length > 0 ? reorderedSongs : editingSetlist.songs).map((song, index) => {
+                    // Find the original index of this song to determine if it's being dragged
+                    const originalIndex = editingSetlist.songs.findIndex(s => s.id === song.id)
+                    const isDragging = draggedIndex === originalIndex
+                    
+                    return (
+                      <div 
+                        key={song.id} 
+                        className={`setlist-song-item ${isDragging ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, originalIndex)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, index)}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <div className="song-number">{index + 1}</div>
+                        <div className="drag-handle" title="Drag to reorder">
+                          ⋮⋮
+                        </div>
+                        <div className="song-info">
+                          <div className="song-title">{song.title}</div>
+                        </div>
+                        <div className="song-actions">
+                          <button
+                            className="btn btn-small btn-danger"
+                            onClick={() => handleRemoveSongFromSetlist(song.id)}
+                            title="Remove from setlist"
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
-                      <div className="song-actions">
-                        <button
-                          className="btn btn-small btn-secondary"
-                          onClick={() => handleMoveSong(index, Math.max(0, index - 1))}
-                          disabled={index === 0}
-                          title="Move up"
-                        >
-                          ↑
-                        </button>
-                        <button
-                          className="btn btn-small btn-secondary"
-                          onClick={() => handleMoveSong(index, Math.min(editingSetlist.songs.length - 1, index + 1))}
-                          disabled={index === editingSetlist.songs.length - 1}
-                          title="Move down"
-                        >
-                          ↓
-                        </button>
-                        <button
-                          className="btn btn-small btn-danger"
-                          onClick={() => handleRemoveSongFromSetlist(song.id)}
-                          title="Remove from setlist"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
