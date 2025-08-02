@@ -50,18 +50,54 @@ body {
   font-size: 1rem;
 }
 
+/* Navigation Tabs */
+.app-nav {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e1e8ed;
+  padding-bottom: 1rem;
+}
+
+.nav-tab {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s;
+  color: #7f8c8d;
+}
+
+.nav-tab:hover {
+  background-color: #f8f9fa;
+  color: #2c3e50;
+}
+
+.nav-tab.active {
+  background-color: #3498db;
+  color: white;
+  border-bottom: 2px solid #3498db;
+  margin-bottom: -2px;
+}
+
 .app-main {
   display: grid;
   gap: 2rem;
   grid-template-columns: 1fr;
   width: 100%;
-  max-width: 1000px;
   justify-items: center;
+}
+
+.app-main.songs-view {
+  max-width: 1000px;
 }
 
 /* Responsive layout */
 @media (min-width: 768px) {
-  .app-main {
+  .app-main.songs-view {
     grid-template-columns: 1fr 1fr;
     justify-items: stretch;
   }
@@ -219,7 +255,7 @@ body {
   width: 100%;
   padding: 0.75rem;
   border: 2px solid #e1e8ed;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 1rem;
 }
 
@@ -716,5 +752,416 @@ body {
   .modal-nav-button {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
+  }
+}
+
+/* Setlist Manager Styles */
+
+
+.setlist-manager {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  width: 70%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.setlist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.setlist-header h2 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.setlist-creator {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e1e8ed;
+}
+
+.setlist-creator-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.setlist-content {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .setlist-content {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
+.setlist-list h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.setlists-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.setlist-card {
+  border: 2px solid #e1e8ed;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.setlist-card:hover {
+  border-color: #3498db;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+}
+
+.setlist-card.selected {
+  border-color: #3498db;
+  background-color: #f0f8ff;
+}
+
+.setlist-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.setlist-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.setlist-name {
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.setlist-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.7rem;
+  color: #7f8c8d;
+  line-height: 1.1;
+}
+
+.setlist-editor {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid #e1e8ed;
+}
+
+.setlist-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.setlist-editor-header h3 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.song-count {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+.setlist-songs {
+  margin-bottom: 2rem;
+}
+
+.setlist-songs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.setlist-song-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e1e8ed;
+  transition: all 0.2s;
+}
+
+.setlist-song-item:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.song-number {
+  background: #3498db;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.setlist-song-item .song-info {
+  flex: 1;
+}
+
+.setlist-song-item .song-title {
+  color: #2c3e50;
+  font-weight: 600;
+  margin: 0;
+}
+
+.setlist-song-item .song-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.song-selector {
+  border-top: 2px solid #e1e8ed;
+  padding-top: 1.5rem;
+}
+
+.song-selector h4 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.available-songs {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e1e8ed;
+  border-radius: 6px;
+  padding: 1rem;
+  background: white;
+}
+
+.available-songs .songs-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.available-songs .song-card {
+  padding: 0.75rem;
+  border: 1px solid #e1e8ed;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.available-songs .song-card:hover {
+  border-color: #3498db;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.available-songs .song-card.in-setlist {
+  background-color: #f0f8ff;
+  border-color: #3498db;
+  opacity: 0.7;
+}
+
+.available-songs .song-card .song-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.available-songs .song-card .song-title {
+  font-size: 0.9rem;
+  margin: 0;
+  flex: 1;
+}
+
+.setlists-section {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Mobile adjustments for setlists */
+@media (max-width: 767px) {
+  .setlist-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .setlist-creator-actions {
+    flex-direction: column;
+  }
+  
+  .setlist-editor-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .setlist-song-item {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .setlist-song-item .song-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .available-songs .songs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Setlist Viewer Styles */
+.setlist-viewer {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.setlist-viewer-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.setlist-info {
+  flex: 1;
+}
+
+.setlist-info h2 {
+  color: #2c3e50;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.5rem;
+}
+
+.setlist-songs-display {
+  width: 100%;
+}
+
+.setlist-song-card {
+  position: relative;
+  cursor: pointer;
+  border: 2px solid #e1e8ed;
+  transition: all 0.3s;
+}
+
+.setlist-song-card:hover {
+  border-color: #3498db;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+  transform: translateY(-1px);
+}
+
+.song-number-badge {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  background: #3498db;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1;
+}
+
+.setlist-songs-display .songs-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.setlist-songs-display .song-card {
+  padding: 1.5rem;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.setlist-songs-display .song-header {
+  margin-bottom: 1rem;
+}
+
+.setlist-songs-display .song-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.setlist-songs-display .song-meta {
+  color: #7f8c8d;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Mobile adjustments for setlist viewer */
+@media (max-width: 767px) {
+  .setlist-viewer-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .setlist-songs-display .songs-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .setlist-songs-display .song-card {
+    padding: 1rem;
+    min-height: auto;
   }
 }

@@ -2,21 +2,31 @@ import { useState, useEffect } from 'react'
 import LyricsEditor from './components/LyricsEditor'
 import SongList from './components/SongList'
 import LyricsModal from './components/LyricsModal'
+import SetlistManager from './components/SetlistManager'
+import SetlistViewer from './components/SetlistViewer'
 import './App.css'
 
 function App() {
   const [songs, setSongs] = useState([])
+  const [setlists, setSetlists] = useState([])
   const [currentSong, setCurrentSong] = useState({ id: null, title: '', lyrics: '' })
   const [isEditing, setIsEditing] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalSong, setModalSong] = useState(null)
   const [startInEditMode, setStartInEditMode] = useState(false)
+  const [activeTab, setActiveTab] = useState('songs') // 'songs' or 'setlists'
+  const [viewingSetlist, setViewingSetlist] = useState(null) // For viewing setlist songs
 
-  // Load songs from localStorage on app start
+  // Load songs and setlists from localStorage on app start
   useEffect(() => {
     const savedSongs = localStorage.getItem('songs')
     if (savedSongs) {
       setSongs(JSON.parse(savedSongs))
+    }
+
+    const savedSetlists = localStorage.getItem('setlists')
+    if (savedSetlists) {
+      setSetlists(JSON.parse(savedSetlists))
     }
   }, [])
 
@@ -24,6 +34,11 @@ function App() {
   useEffect(() => {
     localStorage.setItem('songs', JSON.stringify(songs))
   }, [songs])
+
+  // Save setlists to localStorage whenever setlists array changes
+  useEffect(() => {
+    localStorage.setItem('setlists', JSON.stringify(setlists))
+  }, [setlists])
 
   const saveSong = (songData) => {
     if (songData.id && songs.find(song => song.id === songData.id)) {
@@ -107,6 +122,29 @@ function App() {
     setStartInEditMode(false)
   }
 
+  // Setlist management functions
+  const createSetlist = (newSetlist) => {
+    setSetlists([...setlists, newSetlist])
+  }
+
+  const updateSetlist = (updatedSetlist) => {
+    setSetlists(setlists.map(setlist => 
+      setlist.id === updatedSetlist.id ? updatedSetlist : setlist
+    ))
+  }
+
+  const deleteSetlist = (setlistId) => {
+    setSetlists(setlists.filter(setlist => setlist.id !== setlistId))
+  }
+
+  const viewSetlist = (setlist) => {
+    setViewingSetlist(setlist)
+  }
+
+  const backToSetlists = () => {
+    setViewingSetlist(null)
+  }
+
   const newSong = () => {
     setCurrentSong({ id: null, title: '', lyrics: '' })
     setIsEditing(false)
@@ -116,28 +154,67 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>🎵 Lyrics & Setlist Manager</h1>
-        <p>Create, edit, and manage your song lyrics</p>
+        <p>Create, edit, and manage your song lyrics and setlists</p>
       </header>
 
-      <main className="app-main">
-        <div className="editor-section">
-          <LyricsEditor 
-            currentSong={currentSong}
-            setCurrentSong={setCurrentSong}
-            onSave={saveSong}
-            isEditing={isEditing}
-            onNew={newSong}
-          />
-        </div>
+      {/* Navigation Tabs */}
+      <nav className="app-nav">
+        <button
+          className={`nav-tab ${activeTab === 'songs' ? 'active' : ''}`}
+          onClick={() => setActiveTab('songs')}
+        >
+          🎵 Songs ({songs.length})
+        </button>
+        <button
+          className={`nav-tab ${activeTab === 'setlists' ? 'active' : ''}`}
+          onClick={() => setActiveTab('setlists')}
+        >
+          📋 Setlists ({setlists.length})
+        </button>
+      </nav>
 
-        <div className="songs-section">
-          <SongList 
-            songs={songs}
-            onEdit={editSongInModal}
-            onDelete={deleteSong}
-            onView={openModal}
-          />
-        </div>
+      <main className={`app-main ${activeTab === 'songs' ? 'songs-view' : ''}`}>
+        {activeTab === 'songs' ? (
+          <>
+            <div className="editor-section">
+              <LyricsEditor 
+                currentSong={currentSong}
+                setCurrentSong={setCurrentSong}
+                onSave={saveSong}
+                isEditing={isEditing}
+                onNew={newSong}
+              />
+            </div>
+
+            <div className="songs-section">
+              <SongList 
+                songs={songs}
+                onEdit={editSongInModal}
+                onDelete={deleteSong}
+                onView={openModal}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="setlists-section">
+            {viewingSetlist ? (
+              <SetlistViewer
+                setlist={viewingSetlist}
+                onBack={backToSetlists}
+                onViewSong={openModal}
+              />
+            ) : (
+              <SetlistManager
+                songs={songs}
+                setlists={setlists}
+                onCreateSetlist={createSetlist}
+                onUpdateSetlist={updateSetlist}
+                onDeleteSetlist={deleteSetlist}
+                onViewSetlist={viewSetlist}
+              />
+            )}
+          </div>
+        )}
       </main>
 
       {/* Lyrics Modal */}

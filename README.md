@@ -18,24 +18,29 @@ A React-based web application for managing song lyrics and setlists. This applic
 - **Song Creation**: Create new songs with title and lyrics
 - **Song Editing**: Edit existing songs inline or via modal
 - **Song Management**: Delete songs with confirmation
+- **Setlist Creation**: Create named setlists and organize songs
+- **Setlist Management**: Add/remove songs, reorder setlist items
 - **Search & Filter**: Real-time search through song titles and lyrics
 - **Data Persistence**: Automatic saving to browser localStorage
 - **Responsive Design**: Works on desktop and mobile devices
 
 ### User Interface
 
+- **Navigation Tabs**: Switch between Songs and Setlists sections
 - **Main Editor**: Primary interface for creating new songs
 - **Song List**: Grid view of all songs with quick actions
+- **Setlist Manager**: Create and manage setlists with drag-and-drop ordering
 - **Modal Viewer**: Full-screen lyrics display with navigation
 - **Typography Controls**: Font size, alignment, bold, italic, case options
 - **Keyboard Navigation**: Arrow keys for song navigation in modal
 
 ### Data Management
 
-- **Local Storage**: All songs persist in browser localStorage
+- **Local Storage**: All songs and setlists persist in browser localStorage
 - **Automatic Saving**: Changes saved immediately
 - **Import/Export**: Ready for future cloud sync features
-- **Unique IDs**: Timestamp-based song identification
+- **Unique IDs**: Timestamp-based song and setlist identification
+- **Relationship Management**: Setlists reference songs by ID
 
 ## 🏗️ Architecture
 
@@ -50,7 +55,8 @@ src/
 └── components/
     ├── LyricsEditor.jsx   # Song creation/editing form
     ├── SongList.jsx       # Song collection display with search
-    └── LyricsModal.jsx    # Full-screen lyrics viewer with navigation
+    ├── LyricsModal.jsx    # Full-screen lyrics viewer with navigation
+    └── SetlistManager.jsx # Setlist creation and management interface
 ```
 
 ### State Management
@@ -105,16 +111,20 @@ npm run lint     # Run ESLint code analysis
 ### Workflows
 
 1. **Creating Songs**: Use main editor → Enter title and lyrics → Save
-2. **Viewing Songs**: Click song card → Modal opens with full lyrics
-3. **Editing Songs**: Click edit button → Modal or main editor opens
-4. **Finding Songs**: Use search box → Filter by title or lyrics content
-5. **Managing Collection**: View all songs in grid → Quick actions available
+2. **Creating Setlists**: Switch to Setlists tab → Create new setlist → Add songs
+3. **Managing Setlists**: Select setlist → Add/remove songs → Reorder with up/down buttons
+4. **Viewing Songs**: Click song card → Modal opens with full lyrics
+5. **Editing Songs**: Click edit button → Modal or main editor opens
+6. **Finding Songs**: Use search box → Filter by title or lyrics content
+7. **Managing Collection**: View all songs/setlists in grid → Quick actions available
 
 ### Interface Elements
 
+- **Navigation Tabs**: Switch between Songs and Setlists sections
 - **Header**: App title and description
-- **Main Editor**: Left side for creating new songs
-- **Song List**: Right side showing all saved songs
+- **Main Editor**: Left side for creating new songs (Songs tab)
+- **Song List**: Right side showing all saved songs (Songs tab)
+- **Setlist Manager**: Full-width setlist creation and management (Setlists tab)
 - **Search Box**: Filter songs in real-time
 - **Modal**: Full-screen lyrics viewer with formatting options
 
@@ -131,10 +141,23 @@ npm run lint     # Run ESLint code analysis
 }
 ```
 
+### Setlist Object Schema
+
+```javascript
+{
+  id: Number,           // Timestamp-based unique identifier
+  name: String,         // Setlist name (required)
+  songs: Array,         // Array of song objects in order
+  createdAt: String,    // ISO date string of creation
+  updatedAt: String     // ISO date string of last modification
+}
+```
+
 ### Storage Format
 
-- **Location**: `localStorage['songs']`
-- **Format**: JSON array of song objects
+- **Songs Location**: `localStorage['songs']`
+- **Setlists Location**: `localStorage['setlists']`
+- **Format**: JSON arrays of respective objects
 - **Persistence**: Automatic save on every change
 - **Recovery**: Loaded on app initialization
 
@@ -161,13 +184,15 @@ npm run lint     # Run ESLint code analysis
 ### Potential Features
 
 - Cloud synchronization and backup
-- Setlist creation and management
+- ~~Setlist creation and management~~ ✅ **IMPLEMENTED**
 - Chord notation support
 - Collaborative editing
 - Export to PDF/print formats
 - Import from popular formats
 - Category/genre tagging
 - Performance mode (larger text, auto-scroll)
+- Setlist sharing and collaboration
+- Drag-and-drop setlist reordering
 
 ### Technical Improvements
 
