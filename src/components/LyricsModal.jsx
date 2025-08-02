@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigate, onSave, startInEditMode }) => {
+const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigate, onSave, startInEditMode, onResetEditMode }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isEditing, setIsEditing] = useState(false)
   const [editedTitle, setEditedTitle] = useState('')
@@ -31,9 +31,12 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
       setIsEditing(true)
       setEditedTitle(song.title || '')
       setEditedLyrics(song.lyrics || '')
-      // Reset the startInEditMode after using it (this should be handled by parent)
+      // Reset the flag after using it
+      if (onResetEditMode) {
+        onResetEditMode()
+      }
     }
-  }, [startInEditMode, song, isEditing])
+  }, [startInEditMode, song, isEditing, onResetEditMode])
 
   // Reset edit mode when modal closes or when navigating without startInEditMode
   useEffect(() => {

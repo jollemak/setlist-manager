@@ -70,6 +70,7 @@ function App() {
     // Open modal in edit mode
     setModalSong(song)
     setModalOpen(true)
+    setStartInEditMode(false) // Reset first
     // Use setTimeout to ensure the modal is open before setting edit mode
     setTimeout(() => {
       setStartInEditMode(true)
@@ -100,6 +101,10 @@ function App() {
   const navigateModal = (song) => {
     setModalSong(song)
     setStartInEditMode(false) // Reset edit mode when navigating
+  }
+
+  const resetEditMode = () => {
+    setStartInEditMode(false)
   }
 
   const newSong = () => {
@@ -146,6 +151,7 @@ function App() {
         onNavigate={navigateModal}
         onSave={saveSong}
         startInEditMode={startInEditMode}
+        onResetEditMode={resetEditMode}
       />
     </div>
   )

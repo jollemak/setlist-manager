@@ -1,4 +1,9 @@
 /* Reset and base styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,7 +11,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   line-height: 1.6;
@@ -20,15 +25,18 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .app-header {
   text-align: center;
   margin-bottom: 2rem;
   padding: 1rem;
-  background: white;
+  /* background: white; */
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* box-shadow: 0 2px 4px rgba(0,0,0,0.1); */
 }
 
 .app-header h1 {
@@ -46,12 +54,16 @@ body {
   display: grid;
   gap: 2rem;
   grid-template-columns: 1fr;
+  width: 100%;
+  max-width: 1000px;
+  justify-items: center;
 }
 
 /* Responsive layout */
 @media (min-width: 768px) {
   .app-main {
     grid-template-columns: 1fr 1fr;
+    justify-items: stretch;
   }
 }
 
@@ -62,6 +74,8 @@ body {
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   height: fit-content;
+  width: 100%;
+  max-width: 500px;
 }
 
 .editor-header {
@@ -99,7 +113,7 @@ body {
   width: 100%;
   padding: 0.75rem;
   border: 2px solid #e1e8ed;
-  border-radius: 4px;
+  border-radius: 10px;
   font-size: 1rem;
   transition: border-color 0.3s;
 }
@@ -113,9 +127,9 @@ body {
   width: 100%;
   padding: 0.75rem;
   border: 2px solid #e1e8ed;
-  border-radius: 4px;
+  border-radius: 10px;
   font-size: 1rem;
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', monospace;
   resize: vertical;
   min-height: 100px;
   transition: border-color 0.3s;
@@ -183,6 +197,8 @@ body {
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 500px;
 }
 
 .list-header {
@@ -261,7 +277,7 @@ body {
 }
 
 .lyrics-preview {
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', monospace;
   font-size: 0.9rem;
   color: #7f8c8d;
   background-color: #f8f9fa;
@@ -430,7 +446,7 @@ body {
   line-height: 1.6;
   color: #ffffff;
   white-space: pre-wrap;
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', monospace;
   background: #0f0f0f;
   padding: 1.5rem;
   border-radius: 0.5rem;
@@ -453,7 +469,7 @@ body {
   line-height: 1.6;
   color: #ffffff;
   white-space: pre-wrap;
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', monospace;
   margin: 0;
   background: none;
 }
@@ -485,7 +501,7 @@ body {
   padding: 1.5rem;
   font-size: 1.2rem;
   line-height: 1.6;
-  font-family: 'Courier New', monospace;
+  font-family: 'Poppins', monospace;
   resize: none;
   overflow-y: auto;
 }
@@ -634,7 +650,7 @@ body {
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;
-  font-family: monospace;
+  font-family: 'Poppins', monospace;
   border: 1px solid #555;
 }
 
