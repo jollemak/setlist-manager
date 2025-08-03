@@ -51,6 +51,7 @@ router.get('/', asyncHandler(async (req, res) => {
         id: true,
         title: true,
         lyrics: true,
+        fontSize: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -131,18 +132,20 @@ router.post('/', songValidation, asyncHandler(async (req, res) => {
     });
   }
 
-  const { title, lyrics } = req.body;
+  const { title, lyrics, fontSize } = req.body;
 
   const song = await prisma.song.create({
     data: {
       title,
       lyrics,
+      fontSize: fontSize || 16,
       userId: req.user.id
     },
     select: {
       id: true,
       title: true,
       lyrics: true,
+      fontSize: true,
       createdAt: true,
       updatedAt: true
     }
@@ -166,7 +169,7 @@ router.put('/:id', [...idValidation, ...songValidation], asyncHandler(async (req
     });
   }
 
-  const { title, lyrics } = req.body;
+  const { title, lyrics, fontSize } = req.body;
   const songId = parseInt(req.params.id);
 
   // Check if song exists and belongs to user
@@ -184,13 +187,19 @@ router.put('/:id', [...idValidation, ...songValidation], asyncHandler(async (req
     });
   }
 
+  const updateData = { title, lyrics };
+  
+  // Only update fontSize if provided
+  if (fontSize !== undefined) updateData.fontSize = fontSize;
+
   const song = await prisma.song.update({
     where: { id: songId },
-    data: { title, lyrics },
+    data: updateData,
     select: {
       id: true,
       title: true,
       lyrics: true,
+      fontSize: true,
       createdAt: true,
       updatedAt: true
     }
