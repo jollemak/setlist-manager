@@ -483,18 +483,24 @@ router.put('/:id/reorder', [
     });
   }
 
-  // Update all song orders in a transaction
-  await prisma.$transaction(
-    songOrders.map(({ songId, order }) =>
-      prisma.setlistSong.updateMany({
-        where: {
-          setlistId,
-          songId
-        },
-        data: { order }
-      })
-    )
-  );
+  // Update all song orders in a transaction using delete-and-recreate approach
+  await prisma.$transaction(async (tx) => {
+    // Delete all existing setlistSong entries for this setlist
+    await tx.setlistSong.deleteMany({
+      where: { setlistId }
+    });
+
+    // Recreate all entries with new order values
+    const newEntries = songOrders.map(({ songId, order }) => ({
+      setlistId,
+      songId,
+      order
+    }));
+
+    await tx.setlistSong.createMany({
+      data: newEntries
+    });
+  });
 
   res.json({
     success: true,
