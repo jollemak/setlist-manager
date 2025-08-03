@@ -219,6 +219,7 @@ function App() {
             {viewingSetlist ? (
               <SetlistViewer
                 setlist={viewingSetlist}
+                songs={songs}
                 onBack={backToSetlists}
                 onViewSong={openModalFromSetlist}
                 onUpdateSetlist={updateSetlist}
