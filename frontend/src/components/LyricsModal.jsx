@@ -26,6 +26,13 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
     }
   }, [song, songs, isEditing])
 
+  // Load song's styling properties when song changes
+  useEffect(() => {
+    if (song && song.id) {
+      setFontSize(song.fontSize || 16)
+    }
+  }, [song?.id])
+
   // Handle startInEditMode prop separately - only when explicitly set
   useEffect(() => {
     if (startInEditMode && song && !isEditing) {
@@ -156,6 +163,7 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
       ...song,
       title: editedTitle.trim(),
       lyrics: editedLyrics.trim(),
+      fontSize: fontSize,
       updatedAt: new Date().toISOString()
     }
 

@@ -77,7 +77,17 @@ function MainApp() {
       
       // If we're updating the song that's currently displayed in the modal, update modalSong too
       if (modalSong && modalSong.id === songData.id) {
-        setModalSong(savedSong);
+        // Create a deep copy with the saved data
+        const updatedModalSong = {
+          id: savedSong.id,
+          title: savedSong.title,
+          lyrics: savedSong.lyrics,
+          fontSize: savedSong.fontSize,
+          createdAt: savedSong.createdAt,
+          updatedAt: savedSong.updatedAt,
+          userId: savedSong.userId
+        };
+        setModalSong(updatedModalSong);
       }
       
       setIsEditing(false);
@@ -215,8 +225,17 @@ function MainApp() {
   };
 
   const editSongInModal = (song, songList = songs) => {
-    // Open modal in edit mode
-    setModalSong(song);
+    // Open modal in edit mode - create a deep copy to avoid reference issues
+    const songCopy = {
+      id: song.id,
+      title: song.title,
+      lyrics: song.lyrics,
+      fontSize: song.fontSize,
+      createdAt: song.createdAt,
+      updatedAt: song.updatedAt,
+      userId: song.userId
+    };
+    setModalSong(songCopy);
     setModalSongList(songList);
     setModalOpen(true);
     setStartInEditMode(true);
@@ -228,7 +247,17 @@ function MainApp() {
   };
 
   const openModal = (song, songList = songs) => {
-    setModalSong(song);
+    // Create a deep copy to avoid reference issues
+    const songCopy = {
+      id: song.id,
+      title: song.title,
+      lyrics: song.lyrics,
+      fontSize: song.fontSize,
+      createdAt: song.createdAt,
+      updatedAt: song.updatedAt,
+      userId: song.userId
+    };
+    setModalSong(songCopy);
     setModalSongList(songList);
     setModalOpen(true);
     setStartInEditMode(false);
@@ -242,7 +271,20 @@ function MainApp() {
   };
 
   const navigateModal = (song) => {
-    setModalSong(song);
+    // Find the current song from the songs list to get the latest data
+    const currentSong = songs.find(s => s.id === song.id) || song;
+    
+    // Create a deep copy to avoid reference issues
+    const songCopy = {
+      id: currentSong.id,
+      title: currentSong.title,
+      lyrics: currentSong.lyrics,
+      fontSize: currentSong.fontSize,
+      createdAt: currentSong.createdAt,
+      updatedAt: currentSong.updatedAt,
+      userId: currentSong.userId
+    };
+    setModalSong(songCopy);
     setStartInEditMode(false); // Reset edit mode when navigating
   };
 
