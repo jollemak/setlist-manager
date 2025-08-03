@@ -49,6 +49,30 @@ function App() {
       )
       setSongs(updatedSongs)
       
+      // Update any setlists that contain this song
+      const updatedSetlists = setlists.map(setlist => ({
+        ...setlist,
+        songs: setlist.songs.map(song => 
+          song.id === songData.id ? songData : song
+        ),
+        updatedAt: setlist.songs.some(song => song.id === songData.id) 
+          ? new Date().toISOString() 
+          : setlist.updatedAt
+      }))
+      setSetlists(updatedSetlists)
+      
+      // If we're currently viewing a setlist that contains this song, update it
+      if (viewingSetlist && viewingSetlist.songs.some(song => song.id === songData.id)) {
+        const updatedViewingSetlist = {
+          ...viewingSetlist,
+          songs: viewingSetlist.songs.map(song => 
+            song.id === songData.id ? songData : song
+          ),
+          updatedAt: new Date().toISOString()
+        }
+        setViewingSetlist(updatedViewingSetlist)
+      }
+      
       // If we're updating the song that's currently displayed in the modal, update modalSong too
       if (modalSong && modalSong.id === songData.id) {
         setModalSong(songData)
