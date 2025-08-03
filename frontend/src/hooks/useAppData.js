@@ -248,28 +248,13 @@ export const useAppData = () => {
 
   const reorderSetlistSongs = async (setlistId, newSongsOrder) => {
     try {
-      // Workaround for unique constraint issue in backend
-      // Instead of using the bulk reorder endpoint, we'll remove all songs and re-add them in order
-      
-      const currentSetlist = setlists.find(s => s.id === setlistId);
-      if (!currentSetlist) {
-        throw new Error('Setlist not found');
-      }
+      // Use the efficient bulk reorder endpoint
+      const songOrders = newSongsOrder.map((song, index) => ({
+        songId: song.id,
+        order: index + 1
+      }));
 
-      // Remove all songs from the setlist first
-      const currentSongs = currentSetlist.songs || [];
-      for (const song of currentSongs) {
-        await setlistsService.removeSongFromSetlist(setlistId, song.id);
-      }
-
-      // Add songs back in the new order
-      for (let i = 0; i < newSongsOrder.length; i++) {
-        const song = newSongsOrder[i];
-        await setlistsService.addSongToSetlist(setlistId, { 
-          songId: song.id, 
-          order: i + 1 
-        });
-      }
+      await setlistsService.reorderSongs(setlistId, songOrders);
 
       // Update state optimistically instead of reloading all data
       setSetlists(prevSetlists => 

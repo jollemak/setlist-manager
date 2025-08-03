@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 const SetlistViewer = ({ setlist, songs, onBack, onViewSong, onUpdateSetlist }) => {
   const [draggedIndex, setDraggedIndex] = useState(null)
@@ -6,6 +6,9 @@ const SetlistViewer = ({ setlist, songs, onBack, onViewSong, onUpdateSetlist }) 
   const [reorderedSongs, setReorderedSongs] = useState([])
   const [isEditing, setIsEditing] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  
+  // Debounce ref for batching updates
+  const updateTimeoutRef = useRef(null)
   
   // Editing state
   const [editingDraggedIndex, setEditingDraggedIndex] = useState(null)
@@ -43,6 +46,10 @@ const SetlistViewer = ({ setlist, songs, onBack, onViewSong, onUpdateSetlist }) 
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.width = ''
+      // Clear any pending updates
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current)
+      }
     }
   }, [isEditing])
 
@@ -95,9 +102,16 @@ const SetlistViewer = ({ setlist, songs, onBack, onViewSong, onUpdateSetlist }) 
       return
     }
 
-    // Use the reordered songs from the preview as the final result
-    const updatedSetlist = { ...setlist, songs: reorderedSongs }
-    onUpdateSetlist(updatedSetlist)
+    // Clear any existing timeout
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current)
+    }
+
+    // Debounce the backend update
+    updateTimeoutRef.current = setTimeout(() => {
+      const updatedSetlist = { ...setlist, songs: reorderedSongs }
+      onUpdateSetlist(updatedSetlist)
+    }, 300) // 300ms delay
 
     setDraggedIndex(null)
     setDragOverIndex(null)
@@ -362,14 +376,20 @@ const SetlistViewer = ({ setlist, songs, onBack, onViewSong, onUpdateSetlist }) 
       return
     }
 
-    // Use the reordered songs from the preview as the final result
-    const updatedSetlist = {
-      ...setlist,
-      songs: editingReorderedSongs,
-      updatedAt: new Date().toISOString()
+    // Clear any existing timeout
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current)
     }
 
-    onUpdateSetlist(updatedSetlist)
+    // Debounce the backend update
+    updateTimeoutRef.current = setTimeout(() => {
+      const updatedSetlist = {
+        ...setlist,
+        songs: editingReorderedSongs,
+        updatedAt: new Date().toISOString()
+      }
+      onUpdateSetlist(updatedSetlist)
+    }, 300) // 300ms delay
 
     setEditingDraggedIndex(null)
     setEditingDragOverIndex(null)

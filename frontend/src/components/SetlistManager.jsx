@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 
 const SetlistManager = ({ songs = [], setlists = [], onCreateSetlist, onUpdateSetlist, onDeleteSetlist, onViewSetlist, onAddSongToSetlist, onRemoveSongFromSetlist }) => {
   const [isCreating, setIsCreating] = useState(false)
@@ -15,6 +15,9 @@ const SetlistManager = ({ songs = [], setlists = [], onCreateSetlist, onUpdateSe
   const [draggedIndex, setDraggedIndex] = useState(null)
   const [dragOverIndex, setDragOverIndex] = useState(null)
   const [reorderedSongs, setReorderedSongs] = useState([])
+  
+  // Debounce ref for batching updates
+  const updateTimeoutRef = useRef(null)
 
   // Touch drag state
   const [touchState, setTouchState] = useState({
@@ -47,6 +50,10 @@ const SetlistManager = ({ songs = [], setlists = [], onCreateSetlist, onUpdateSe
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.width = ''
+      // Clear any pending updates
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current)
+      }
     }
   }, [editingSetlist])
 
@@ -194,17 +201,23 @@ const SetlistManager = ({ songs = [], setlists = [], onCreateSetlist, onUpdateSe
       return
     }
 
-    // Update local state immediately
+    // Update local state immediately for responsive UI
     setLocalSetlistSongs(reorderedSongs)
 
-    // Update the backend
-    const updatedSetlist = {
-      ...editingSetlist,
-      songs: reorderedSongs,
-      updatedAt: new Date().toISOString()
+    // Clear any existing timeout
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current)
     }
 
-    onUpdateSetlist(updatedSetlist)
+    // Debounce the backend update
+    updateTimeoutRef.current = setTimeout(() => {
+      const updatedSetlist = {
+        ...editingSetlist,
+        songs: reorderedSongs,
+        updatedAt: new Date().toISOString()
+      }
+      onUpdateSetlist(updatedSetlist)
+    }, 300) // 300ms delay
 
     setDraggedIndex(null)
     setDragOverIndex(null)
