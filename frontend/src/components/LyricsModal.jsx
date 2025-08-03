@@ -10,6 +10,7 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
   const [isBold, setIsBold] = useState(false)
   const [isItalic, setIsItalic] = useState(false)
   const [textCase, setTextCase] = useState('normal') // 'normal', 'uppercase', 'lowercase', 'title'
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   // Find current song index when modal opens or song changes
   useEffect(() => {
@@ -42,15 +43,29 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
   useEffect(() => {
     if (!isOpen) {
       setIsEditing(false)
+      setIsFullscreen(false)
     }
   }, [isOpen])
+
+  // Prevent body scroll when in fullscreen mode
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isFullscreen])
 
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (!isOpen) return
 
-      // Don't handle navigation when editing and focus is on input fields
+      // Don't handle ANY shortcuts when editing and focus is on input fields
       if (isEditing && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
         // Only handle Escape to cancel editing
         if (e.key === 'Escape') {
@@ -60,41 +75,32 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
         return
       }
 
-      switch (e.key) {
-        case 'Escape':
-          if (isEditing) {
-            cancelEdit()
-          } else {
-            onClose()
-          }
-          break
-        case 'ArrowLeft':
-        case 'ArrowUp':
-          if (!isEditing) {
+      // Only handle navigation shortcuts when NOT editing
+      if (!isEditing) {
+        switch (e.key) {
+          case 'Escape':
+            if (isFullscreen) {
+              setIsFullscreen(false)
+            } else {
+              onClose()
+            }
+            break
+          case 'ArrowLeft':
+          case 'ArrowUp':
             e.preventDefault()
             navigateToPrevious()
-          }
-          break
-        case 'ArrowRight':
-        case 'ArrowDown':
-          if (!isEditing) {
+            break
+          case 'ArrowRight':
+          case 'ArrowDown':
             e.preventDefault()
             navigateToNext()
-          }
-        case 'e':
-        case 'E':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault()
-            toggleEdit()
-          }
-          break
-        case 's':
-        case 'S':
-          if ((e.ctrlKey || e.metaKey) && isEditing) {
-            e.preventDefault()
-            saveEdit()
-          }
-          break
+            break
+        }
+      } else {
+        // When editing, only handle Escape
+        if (e.key === 'Escape') {
+          cancelEdit()
+        }
       }
     }
 
@@ -253,6 +259,69 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
 
   if (!isOpen || !song) return null
 
+  // Fullscreen mode
+  if (isFullscreen) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content fullscreen-mode" onClick={e => e.stopPropagation()}>
+          {/* Minimal fullscreen header */}
+          <div className="fullscreen-header">
+            <button 
+              className="fullscreen-exit-btn"
+              onClick={() => setIsFullscreen(false)}
+              title="Exit fullscreen (Esc)"
+            >
+              ✕
+            </button>
+            
+            {/* Song title in center */}
+            <div className="fullscreen-title-area">
+              <h3 className="fullscreen-song-title">
+                {song.title}
+              </h3>
+            </div>
+            
+            {songs.length > 1 && (
+              <div className="fullscreen-nav-arrows">
+                <button 
+                  className="fullscreen-arrow-btn"
+                  onClick={navigateToPrevious}
+                  title="Previous song (← or ↑)"
+                >
+                  ‹
+                </button>
+                <button 
+                  className="fullscreen-arrow-btn"
+                  onClick={navigateToNext}
+                  title="Next song (→ or ↓)"
+                >
+                  ›
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Fullscreen lyrics - same formatting as regular modal */}
+          <div className="modal-body fullscreen-body">
+            <div className="lyrics-display fullscreen-lyrics-display">
+              <pre 
+                style={{ 
+                  fontSize: `${fontSize}px`, 
+                  textAlign: textAlign,
+                  fontWeight: isBold ? 'bold' : 'normal',
+                  fontStyle: isItalic ? 'italic' : 'normal',
+                  textTransform: getTextTransform()
+                }}
+              >
+                {song.lyrics}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -284,7 +353,7 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
                 <button 
                   className="btn btn-primary btn-sm" 
                   onClick={saveEdit}
-                  title="Save changes (Ctrl+S)"
+                  title="Save changes"
                 >
                   Save
                 </button>
@@ -301,9 +370,16 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
                 <button 
                   className="btn btn-secondary btn-sm" 
                   onClick={toggleEdit}
-                  title="Edit in modal (Ctrl+E)"
+                  title="Edit in modal"
                 >
                   Edit
+                </button>
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  onClick={() => setIsFullscreen(true)}
+                  title="Fullscreen mode"
+                >
+                  ⛶
                 </button>
                 {/* <button 
                   className="btn btn-secondary btn-sm" 
@@ -527,13 +603,11 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
             <span>Keyboard: </span>
             {isEditing ? (
               <>
-                <kbd>Ctrl+S</kbd> Save • 
                 <kbd>Esc</kbd> Cancel
               </>
             ) : (
               <>
                 <kbd>←→</kbd> Navigate • 
-                <kbd>Ctrl+E</kbd> Edit • 
                 <kbd>Esc</kbd> Close
               </>
             )}

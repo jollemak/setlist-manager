@@ -1,11 +1,15 @@
 import { useState } from 'react'
 
-const SongList = ({ songs, onEdit, onDelete, onView }) => {
+const SongList = ({ songs = [], onEdit, onDelete, onView }) => {
   const [searchTerm, setSearchTerm] = useState('')
 
-  const filteredSongs = songs.filter(song =>
-    song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    song.lyrics.toLowerCase().includes(searchTerm.toLowerCase())
+  // Guard against undefined or non-array songs
+  const safeSongs = Array.isArray(songs) ? songs : [];
+
+  const filteredSongs = safeSongs.filter(song =>
+    song && song.title && song.lyrics &&
+    (song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    song.lyrics.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   const handleDelete = (song, e) => {
@@ -36,9 +40,9 @@ const SongList = ({ songs, onEdit, onDelete, onView }) => {
   return (
     <div className="song-list">
       <div className="list-header">
-        <h2>My Songs ({songs.length})</h2>
+        <h2>My Songs ({safeSongs.length})</h2>
         
-        {songs.length > 0 && (
+        {safeSongs.length > 0 && (
           <div className="search-box">
             <input
               type="text"

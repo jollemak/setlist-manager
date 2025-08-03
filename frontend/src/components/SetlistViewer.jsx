@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 
-const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onDeleteSetlist, onViewSetlist }) => {
-  const [isCreating, setIsCreating] = useState(false)
-  const [newSetlistName, setNewSetlistName] = useState('')
-  const [editingSetlist, setEditingSetlist] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  
-  // Drag and drop state
+const SetlistViewer = ({ setlist, songs, onBack, onViewSong, onUpdateSetlist }) => {
   const [draggedIndex, setDraggedIndex] = useState(null)
   const [dragOverIndex, setDragOverIndex] = useState(null)
   const [reorderedSongs, setReorderedSongs] = useState([])
+  const [isEditing, setIsEditing] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  // Editing state
+  const [editingDraggedIndex, setEditingDraggedIndex] = useState(null)
+  const [editingDragOverIndex, setEditingDragOverIndex] = useState(null)
+  const [editingReorderedSongs, setEditingReorderedSongs] = useState([])
 
   // Touch drag state
   const [touchState, setTouchState] = useState({
@@ -23,9 +24,9 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
     showIndicator: false
   })
 
-  // Prevent background scrolling when modal is open
+  // Prevent background scrolling when editing modal is open
   useEffect(() => {
-    if (editingSetlist) {
+    if (isEditing) {
       // Disable background scroll
       document.body.style.overflow = 'hidden'
       document.body.style.position = 'fixed'
@@ -43,91 +44,16 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
       document.body.style.position = ''
       document.body.style.width = ''
     }
-  }, [editingSetlist])
+  }, [isEditing])
 
-  const handleCreateSetlist = () => {
-    if (!newSetlistName.trim()) {
-      alert('Please enter a setlist name')
-      return
-    }
+  if (!setlist) return null
 
-    const newSetlist = {
-      id: Date.now(),
-      name: newSetlistName.trim(),
-      songs: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
+  // Get the songs to display - either the reordered preview or original
+  const displaySongs = (reorderedSongs || []).length > 0 ? (reorderedSongs || []) : (setlist.songs || [])
 
-    onCreateSetlist(newSetlist)
-    setNewSetlistName('')
-    setIsCreating(false)
-    setEditingSetlist(newSetlist)
-  }
-
-  const handleCancelCreate = () => {
-    setIsCreating(false)
-    setNewSetlistName('')
-  }
-
-  const handleDeleteSetlist = (setlistId) => {
-    const setlist = setlists.find(s => s.id === setlistId)
-    if (window.confirm(`Are you sure you want to delete "${setlist.name}"?`)) {
-      onDeleteSetlist(setlistId)
-      if (editingSetlist && editingSetlist.id === setlistId) {
-        setEditingSetlist(null)
-      }
-    }
-  }
-
-  const handleAddSongToSetlist = (song) => {
-    if (!editingSetlist) return
-
-    // Check if song is already in setlist
-    if (editingSetlist.songs.find(s => s.id === song.id)) {
-      alert('This song is already in the setlist')
-      return
-    }
-
-    const updatedSetlist = {
-      ...editingSetlist,
-      songs: [...editingSetlist.songs, song],
-      updatedAt: new Date().toISOString()
-    }
-
-    onUpdateSetlist(updatedSetlist)
-    setEditingSetlist(updatedSetlist)
-  }
-
-  const handleRemoveSongFromSetlist = (songId) => {
-    if (!editingSetlist) return
-
-    const updatedSetlist = {
-      ...editingSetlist,
-      songs: editingSetlist.songs.filter(s => s.id !== songId),
-      updatedAt: new Date().toISOString()
-    }
-
-    onUpdateSetlist(updatedSetlist)
-    setEditingSetlist(updatedSetlist)
-  }
-
-  const handleEditSetlist = (setlist) => {
-    setEditingSetlist(setlist)
-  }
-
-  const handleCancelEdit = () => {
-    setEditingSetlist(null)
-    // Reset drag state when canceling edit
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-    setReorderedSongs([])
-  }
-
-  // Drag and drop handlers
   const handleDragStart = (e, index) => {
     setDraggedIndex(index)
-    setReorderedSongs([...editingSetlist.songs]) // Start with current order
+    setReorderedSongs([...(setlist.songs || [])]) // Start with current order
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/html', e.target)
   }
@@ -143,7 +69,7 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
     setDragOverIndex(index)
 
     // Create real-time preview by reordering the songs array
-    const newSongs = [...editingSetlist.songs]
+    const newSongs = [...(setlist.songs || [])]
     const draggedSong = newSongs[draggedIndex]
     
     // Remove the dragged song from its original position
@@ -170,14 +96,8 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
     }
 
     // Use the reordered songs from the preview as the final result
-    const updatedSetlist = {
-      ...editingSetlist,
-      songs: reorderedSongs,
-      updatedAt: new Date().toISOString()
-    }
-
+    const updatedSetlist = { ...setlist, songs: reorderedSongs }
     onUpdateSetlist(updatedSetlist)
-    setEditingSetlist(updatedSetlist)
 
     setDraggedIndex(null)
     setDragOverIndex(null)
@@ -226,7 +146,7 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
       return
     }
 
-    // Only prevent default if we're actively dragging and event is cancelable
+    // Only prevent default if we're actively dragging
     if (e.cancelable) {
       e.preventDefault()
     }
@@ -234,7 +154,7 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
     const touch = e.touches[0]
 
     // Find drop target
-    const elements = document.querySelectorAll('.setlist-song-item:not(.touch-dragging)')
+    const elements = document.querySelectorAll('.setlist-song-card:not(.touch-dragging)')
     let dropIndex = -1
     
     elements.forEach((el, idx) => {
@@ -267,7 +187,7 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
 
     // Find final drop position
     const touch = e.changedTouches[0]
-    const elements = document.querySelectorAll('.setlist-song-item:not(.touch-dragging)')
+    const elements = document.querySelectorAll('.setlist-song-card:not(.touch-dragging)')
     let dropIndex = touchState.draggedIndex
     
     elements.forEach((el, idx) => {
@@ -279,20 +199,19 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
 
     // Perform the reorder
     if (dropIndex !== touchState.draggedIndex && dropIndex >= 0) {
-      const newSongs = [...editingSetlist.songs]
+      const newSongs = [...(setlist.songs || [])]
       const draggedSong = newSongs[touchState.draggedIndex]
       
       newSongs.splice(touchState.draggedIndex, 1)
       newSongs.splice(dropIndex, 0, draggedSong)
 
       const updatedSetlist = {
-        ...editingSetlist,
+        ...setlist,
         songs: newSongs,
         updatedAt: new Date().toISOString()
       }
 
       onUpdateSetlist(updatedSetlist)
-      setEditingSetlist(updatedSetlist)
     }
 
     // Clean up
@@ -314,6 +233,7 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
 
   const updatePlaceholder = (dropIndex) => {
     // Simple implementation - just track the drop index
+    // Visual feedback will be handled by CSS hover states
     setTouchState(prev => ({
       ...prev,
       dropIndex: dropIndex
@@ -339,118 +259,220 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
     })
   }
 
-  const filteredSongs = songs.filter(song =>
+  const handleSongClick = (song, e) => {
+    // Prevent song view when clicking on drag handle or delete button
+    if (e.target.closest('.drag-handle') || e.target.closest('.setlist-song-delete')) {
+      return
+    }
+    onViewSong(song)
+  }
+
+  const handleDeleteSong = (songId, e) => {
+    e.stopPropagation()
+    const updatedSetlist = {
+      ...setlist,
+      songs: (setlist.songs || []).filter(s => s.id !== songId),
+      updatedAt: new Date().toISOString()
+    }
+    onUpdateSetlist(updatedSetlist)
+  }
+
+  // Editing functions
+  const handleEditSetlist = () => {
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setSearchTerm('')
+    // Reset editing drag state
+    setEditingDraggedIndex(null)
+    setEditingDragOverIndex(null)
+    setEditingReorderedSongs([])
+  }
+
+  const handleAddSongToSetlist = (song) => {
+    // Check if song is already in setlist
+    if ((setlist.songs || []).find(s => s.id === song.id)) {
+      alert('This song is already in the setlist')
+      return
+    }
+
+    const updatedSetlist = {
+      ...setlist,
+      songs: [...(setlist.songs || []), song],
+      updatedAt: new Date().toISOString()
+    }
+
+    onUpdateSetlist(updatedSetlist)
+  }
+
+  const handleRemoveSongFromSetlist = (songId) => {
+    const updatedSetlist = {
+      ...setlist,
+      songs: (setlist.songs || []).filter(s => s.id !== songId),
+      updatedAt: new Date().toISOString()
+    }
+
+    onUpdateSetlist(updatedSetlist)
+  }
+
+  // Editing drag and drop handlers
+  const handleEditingDragStart = (e, index) => {
+    setEditingDraggedIndex(index)
+    setEditingReorderedSongs([...(setlist.songs || [])]) // Start with current order
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', e.target)
+  }
+
+  const handleEditingDragOver = (e, index) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    
+    if (editingDraggedIndex === null || editingDraggedIndex === index) {
+      return
+    }
+
+    setEditingDragOverIndex(index)
+
+    // Create real-time preview by reordering the songs array
+    const newSongs = [...(setlist.songs || [])]
+    const draggedSong = newSongs[editingDraggedIndex]
+    
+    // Remove the dragged song from its original position
+    newSongs.splice(editingDraggedIndex, 1)
+    
+    // Insert the dragged song at the hover position
+    newSongs.splice(index, 0, draggedSong)
+
+    setEditingReorderedSongs(newSongs)
+  }
+
+  const handleEditingDragLeave = () => {
+    setEditingDragOverIndex(null)
+  }
+
+  const handleEditingDrop = (e, dropIndex) => {
+    e.preventDefault()
+    
+    if (editingDraggedIndex === null || editingDraggedIndex === dropIndex) {
+      setEditingDraggedIndex(null)
+      setEditingDragOverIndex(null)
+      setEditingReorderedSongs([])
+      return
+    }
+
+    // Use the reordered songs from the preview as the final result
+    const updatedSetlist = {
+      ...setlist,
+      songs: editingReorderedSongs,
+      updatedAt: new Date().toISOString()
+    }
+
+    onUpdateSetlist(updatedSetlist)
+
+    setEditingDraggedIndex(null)
+    setEditingDragOverIndex(null)
+    setEditingReorderedSongs([])
+  }
+
+  const handleEditingDragEnd = () => {
+    setEditingDraggedIndex(null)
+    setEditingDragOverIndex(null)
+    setEditingReorderedSongs([])
+  }
+
+  // Filter songs for editing
+  const filteredSongs = songs ? songs.filter(song =>
     song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     song.lyrics.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  ) : []
 
   return (
-    <div className="setlist-manager">
-      <div className="setlist-header">
-        <h2>🎵 Setlists ({setlists.length})</h2>
-        {!isCreating && (
-          <button
-            className="btn btn-primary"
-            onClick={() => setIsCreating(true)}
-          >
-            + New Setlist
-          </button>
+    
+
+    <div className="setlist-viewer">
+      
+<div className="setlist-viewer-header">
+        <button
+          className="btn btn-secondary"
+          onClick={onBack}
+        >
+          ← Back to Setlists
+        </button>
+        <div className="setlist-info">
+          <h2>📋 {setlist.name}</h2>
+          <span className="song-count">{displaySongs.length} songs</span>
+        </div>
+        <button
+          className="btn btn-primary"
+          onClick={handleEditSetlist}
+        >
+          ✏️ Edit
+        </button>
+      </div>
+      <div className="setlist-songs-display">
+        {displaySongs.length === 0 ? (
+          <div className="empty-state">
+            <p>🎵 No songs in this setlist</p>
+            <p>Use the edit button to add songs.</p>
+          </div>
+        ) : (
+          <div className="songs-grid">
+            {displaySongs.map((song, index) => {
+              // Find the original index of this song to determine if it's being dragged
+              const originalIndex = (setlist.songs || []).findIndex(s => s.id === song.id)
+              const isDragging = draggedIndex === originalIndex
+              
+              return (
+                <div 
+                  key={song.id} 
+                  className={`song-card setlist-song-card draggable ${
+                    isDragging ? 'dragging' : ''
+                  } ${dragOverIndex === index ? 'drag-over' : ''} ${touchState.isDragging && touchState.draggedIndex === originalIndex ? 'touch-active' : ''}`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, originalIndex)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  onTouchStart={(e) => handleTouchStart(e, originalIndex)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  onClick={(e) => handleSongClick(song, e)}
+                >
+                  <div className="song-number-badge">{index + 1}</div>
+                  <div className="drag-handle" title="Drag to reorder">
+                    ⋮⋮
+                  </div>
+                  <div className="song-header">
+                    <h3 className="song-title">{song.title}</h3>
+                  </div>
+                  <div className="song-meta">
+                    <small>Click to view lyrics • Drag to reorder</small>
+                  </div>
+                  <button
+                    className="setlist-song-delete"
+                    onClick={(e) => handleDeleteSong(song.id, e)}
+                    title="Remove from setlist"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )
+            })}
+          </div>
         )}
       </div>
 
-      {isCreating && (
-        <div className="setlist-creator">
-          <div className="form-group">
-            <label htmlFor="setlist-name">Setlist Name</label>
-            <input
-              id="setlist-name"
-              type="text"
-              value={newSetlistName}
-              onChange={(e) => setNewSetlistName(e.target.value)}
-              placeholder="Enter setlist name..."
-              className="input-field"
-              autoFocus
-            />
-          </div>
-          <div className="setlist-creator-actions">
-            <button
-              className="btn btn-primary"
-              onClick={handleCreateSetlist}
-              disabled={!newSetlistName.trim()}
-            >
-              Create Setlist
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={handleCancelCreate}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="setlist-content">
-        {/* Setlist List */}
-        <div className="setlist-list">
-          <h3>Your Setlists</h3>
-          {setlists.length === 0 ? (
-            <div className="empty-state">
-              <p>📝 No setlists yet!</p>
-              <p>Create your first setlist to get started.</p>
-            </div>
-          ) : (
-            <div className="setlists-grid">
-              {setlists.map(setlist => (
-                <div
-                  key={setlist.id}
-                  className="setlist-card"
-                  onClick={() => onViewSetlist(setlist)}
-                >
-                  <div className="setlist-card-header">
-                    <h4 className="setlist-name">{setlist.name}</h4>
-                    <div className="setlist-actions">
-                      <button
-                        className="btn btn-small btn-secondary"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleEditSetlist(setlist)
-                        }}
-                        title="Edit setlist"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="btn btn-small btn-danger"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteSetlist(setlist.id)
-                        }}
-                        title="Delete setlist"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                  <div className="setlist-meta">
-                    <span>{setlist.songs.length} songs</span>
-                    <span>Created: {new Date(setlist.createdAt).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Setlist Editor Modal */}
-      {editingSetlist && (
+      {isEditing && (
         <div className="setlist-editor-modal" onClick={handleCancelEdit}>
           <div className="setlist-editor-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="setlist-editor-modal-header">
-              <h3>📋 Editing: {editingSetlist.name}</h3>
+              <h3>📋 Editing: {setlist.name}</h3>
               <div className="editor-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span className="song-count">{editingSetlist.songs.length} songs</span>
+                <span className="song-count">{(setlist.songs || []).length} songs</span>
                 <button
                   className="modal-close-btn"
                   onClick={handleCancelEdit}
@@ -463,32 +485,28 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
 
             <div className="setlist-editor-modal-body">
               <div className="setlist-songs">
-                
-                {editingSetlist.songs.length === 0 ? (
+                {(setlist.songs || []).length === 0 ? (
                   <div className="empty-state">
                     <p>🎵 No songs in this setlist</p>
                     <p>Add songs from your collection below.</p>
                   </div>
                 ) : (
                   <div className="setlist-songs-list">
-                    {(reorderedSongs.length > 0 ? reorderedSongs : editingSetlist.songs).map((song, index) => {
+                    {((editingReorderedSongs || []).length > 0 ? (editingReorderedSongs || []) : (setlist.songs || [])).map((song, index) => {
                       // Find the original index of this song to determine if it's being dragged
-                      const originalIndex = editingSetlist.songs.findIndex(s => s.id === song.id)
-                      const isDragging = draggedIndex === originalIndex
+                      const originalIndex = (setlist.songs || []).findIndex(s => s.id === song.id)
+                      const isDragging = editingDraggedIndex === originalIndex
                       
                       return (
                         <div 
                           key={song.id} 
-                          className={`setlist-song-item ${isDragging ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''} ${touchState.isDragging && touchState.draggedIndex === originalIndex ? 'touch-active' : ''}`}
+                          className={`setlist-song-item ${isDragging ? 'dragging' : ''} ${editingDragOverIndex === index ? 'drag-over' : ''}`}
                           draggable
-                          onDragStart={(e) => handleDragStart(e, originalIndex)}
-                          onDragOver={(e) => handleDragOver(e, index)}
-                          onDragLeave={handleDragLeave}
-                          onDrop={(e) => handleDrop(e, index)}
-                          onDragEnd={handleDragEnd}
-                          onTouchStart={(e) => handleTouchStart(e, originalIndex)}
-                          onTouchMove={handleTouchMove}
-                          onTouchEnd={handleTouchEnd}
+                          onDragStart={(e) => handleEditingDragStart(e, originalIndex)}
+                          onDragOver={(e) => handleEditingDragOver(e, index)}
+                          onDragLeave={handleEditingDragLeave}
+                          onDrop={(e) => handleEditingDrop(e, index)}
+                          onDragEnd={handleEditingDragEnd}
                         >
                           <div className="song-number">{index + 1}</div>
                           <div className="drag-handle" title="Drag to reorder">
@@ -533,7 +551,7 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
                   ) : (
                     <div className="songs-grid">
                       {filteredSongs.map(song => {
-                        const isInSetlist = editingSetlist.songs.find(s => s.id === song.id)
+                        const isInSetlist = (setlist.songs || []).find(s => s.id === song.id)
                         return (
                           <div
                             key={song.id}
@@ -565,4 +583,4 @@ const SetlistManager = ({ songs, setlists, onCreateSetlist, onUpdateSetlist, onD
   )
 }
 
-export default SetlistManager
+export default SetlistViewer

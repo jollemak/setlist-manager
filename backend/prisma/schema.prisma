@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  songs    Song[]
+  setlists Setlist[]
+
+  @@map("users")
+}
+
+model Song {
+  id        Int      @id @default(autoincrement())
+  title     String
+  lyrics    String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign keys
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relations
+  setlistSongs SetlistSong[]
+
+  @@map("songs")
+}
+
+model Setlist {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign keys
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relations
+  setlistSongs SetlistSong[]
+
+  @@map("setlists")
+}
+
+model SetlistSong {
+  id    Int @id @default(autoincrement())
+  order Int
+
+  // Foreign keys
+  setlistId Int
+  songId    Int
+
+  // Relations
+  setlist Setlist @relation(fields: [setlistId], references: [id], onDelete: Cascade)
+  song    Song    @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  // Ensure unique order within each setlist
+  @@unique([setlistId, order])
+  @@map("setlist_songs")
+}
