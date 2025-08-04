@@ -63,7 +63,8 @@ router.get('/', asyncHandler(async (req, res) => {
               select: {
                 id: true,
                 title: true,
-                lyrics: true
+                lyrics: true,
+                fontSize: true
               }
             }
           }
@@ -118,7 +119,8 @@ router.get('/:id', idValidation, asyncHandler(async (req, res) => {
             select: {
               id: true,
               title: true,
-              lyrics: true
+              lyrics: true,
+              fontSize: true
             }
           }
         }
@@ -362,7 +364,9 @@ router.post('/:id/songs', [...idValidation, ...addSongValidation], asyncHandler(
       song: {
         select: {
           id: true,
-          title: true
+          title: true,
+          lyrics: true,
+          fontSize: true
         }
       }
     }
