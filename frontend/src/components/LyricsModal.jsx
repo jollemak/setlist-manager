@@ -389,13 +389,7 @@ const LyricsModal = ({ song, songs, isOpen, onClose, onEdit, onDelete, onNavigat
                 >
                   ⛶
                 </button>
-                {/* <button 
-                  className="btn btn-secondary btn-sm" 
-                  onClick={handleEdit}
-                  title="Edit in main editor"
-                >
-                  Edit Main
-                </button> */}
+               
               </>
             )}
             <button 
