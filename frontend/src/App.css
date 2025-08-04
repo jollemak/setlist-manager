@@ -576,7 +576,7 @@ body {
 
 .lyrics-display.fullscreen-lyrics-display {
   height: 100%;
-  background: #ffffff;
+  background: #1a1a1a;
   border: none;
   border-radius: 0;
   width: 100%;
@@ -588,7 +588,7 @@ body {
   padding: 1rem 2rem;
   margin: 0;
   overflow-y: auto;
-  color: #fdfdfd;
+  color: #ffffff;
   background: none;
   text-align: center;
   width: 100%;
