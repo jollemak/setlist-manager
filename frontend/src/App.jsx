@@ -40,9 +40,14 @@ function MainApp() {
       const updatedSetlist = setlists.find(s => s.id === viewingSetlist.id);
       if (updatedSetlist && JSON.stringify(updatedSetlist) !== JSON.stringify(viewingSetlist)) {
         setViewingSetlist(updatedSetlist);
+        
+        // If modal is open and we're viewing setlist songs, update modalSongList
+        if (modalOpen && modalSongList.length > 0) {
+          setModalSongList(updatedSetlist.songs);
+        }
       }
     }
-  }, [setlists, viewingSetlist]);
+  }, [setlists, viewingSetlist, modalOpen, modalSongList]);
 
   // Show loading spinner while data is loading
   if (dataLoading) {
@@ -88,6 +93,26 @@ function MainApp() {
           userId: savedSong.userId
         };
         setModalSong(updatedModalSong);
+      }
+      
+      // If we're viewing a setlist and the saved song is in that setlist, update the setlist too
+      if (viewingSetlist && viewingSetlist.songs && savedSong) {
+        const songInSetlist = viewingSetlist.songs.find(s => s.id === savedSong.id);
+        if (songInSetlist) {
+          const updatedSetlistSongs = viewingSetlist.songs.map(s => 
+            s.id === savedSong.id ? { ...s, ...savedSong } : s
+          );
+          const updatedSetlist = {
+            ...viewingSetlist,
+            songs: updatedSetlistSongs
+          };
+          setViewingSetlist(updatedSetlist);
+          
+          // Always update modalSongList if we're viewing a setlist and modal is open
+          if (modalOpen && modalSongList.length > 0) {
+            setModalSongList(updatedSetlistSongs);
+          }
+        }
       }
       
       setIsEditing(false);
@@ -271,8 +296,22 @@ function MainApp() {
   };
 
   const navigateModal = (song) => {
-    // Find the current song from the songs list to get the latest data
-    const currentSong = songs.find(s => s.id === song.id) || song;
+    // Find the current song from the appropriate list to get the latest data
+    let currentSong;
+    let currentSongList;
+    
+    if (viewingSetlist && viewingSetlist.songs) {
+      // If we're in setlist viewer, use setlist songs
+      currentSong = viewingSetlist.songs.find(s => s.id === song.id) || song;
+      currentSongList = viewingSetlist.songs;
+    } else {
+      // Otherwise use main songs list
+      currentSong = songs.find(s => s.id === song.id) || song;
+      currentSongList = songs;
+    }
+    
+    // Update modalSongList to use the current list with latest data
+    setModalSongList(currentSongList);
     
     // Create a deep copy to avoid reference issues
     const songCopy = {

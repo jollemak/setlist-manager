@@ -79,6 +79,17 @@ export const useAppData = () => {
           setSongs(prevSongs => 
             prevSongs.map(song => song.id === songData.id ? updatedSong : song)
           );
+          
+          // Also update the song in any setlists that contain it
+          setSetlists(prevSetlists => 
+            prevSetlists.map(setlist => ({
+              ...setlist,
+              songs: setlist.songs ? setlist.songs.map(song => 
+                song.id === songData.id ? { ...song, ...updatedSong } : song
+              ) : setlist.songs
+            }))
+          );
+          
           return updatedSong;
         }
       } else {
